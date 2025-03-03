@@ -1,0 +1,42 @@
+package builder
+
+import (
+	"fmt"
+
+	"github.com/spf13/viper"
+)
+
+func URLBuilder(connType string) string {
+	switch connType {
+	case "addr":
+		addr := ""
+		if viper.GetString("server.mode") == "debug" {
+			addr = "localhost:" + viper.GetString("server.port")
+		} else {
+			addr = ":" + viper.GetString("server.port")
+		}
+		return addr
+
+	case "postgres":
+		return fmt.Sprintf(
+			"host=%v user=%v password=%v dbname=%v port=%v sslmode=disable TimeZone=Asia/Bangkok",
+			viper.GetString("db.host"),
+			viper.GetString("db.username"),
+			viper.GetString("db.password"),
+			viper.GetString("db.name"),
+			viper.GetInt("db.port"),
+		)
+
+	case "mysql":
+		return fmt.Sprintf(
+			"%v:%v@tcp(%v:%v)/%v?charset=utf8&parseTime=True",
+			viper.GetString("db.username"),
+			viper.GetString("db.password"),
+			viper.GetString("db.host"),
+			viper.GetInt("db.port"),
+			viper.GetString("db.dbname"),
+		)
+	default:
+		return ""
+	}
+}

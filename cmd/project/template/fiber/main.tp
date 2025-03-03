@@ -1,0 +1,22 @@
+package main
+
+import (
+	"{PROJECTNAME}/configs"
+	"{PROJECTNAME}/pkgs/db"
+	"{PROJECTNAME}/pkgs/logs"
+	"{PROJECTNAME}/server"
+
+	"github.com/gofiber/fiber/v2"
+)
+
+func init() {
+	configs.Init()
+	configs.SetTimeZone()
+	logs.Init()
+	db.Init()
+}
+
+func main() {
+	serve := server.New(fiber.New())
+	serve.ListenAndServe()
+}

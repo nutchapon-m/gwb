@@ -1,0 +1,52 @@
+package copy
+
+import (
+	"fmt"
+	"reflect"
+)
+
+func Copy(src, dest any) error {
+	srcValue := reflect.ValueOf(src)
+	destValue := reflect.ValueOf(dest)
+
+	// Ensure src is a struct and dest is a pointer to a struct
+	if srcValue.Kind() != reflect.Struct {
+		return fmt.Errorf("source must be a struct")
+	}
+	if destValue.Kind() != reflect.Ptr || destValue.Elem().Kind() != reflect.Struct {
+		return fmt.Errorf("destination must be a pointer to a struct")
+	}
+
+	destElem := destValue.Elem()
+
+	// Map fields from src to dest, including embedded structs
+	if err := mapFields(srcValue, destElem); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func mapFields(srcValue, destElem reflect.Value) error {
+	for i := 0; i < srcValue.NumField(); i++ {
+		srcField := srcValue.Type().Field(i)
+		srcFieldValue := srcValue.Field(i)
+
+		// Handle embedded structs
+		if srcField.Anonymous {
+			if err := mapFields(srcFieldValue, destElem); err != nil {
+				return err
+			}
+			continue
+		}
+
+		srcFieldName := srcField.Name
+
+		// Find matching field in the destination
+		destField := destElem.FieldByName(srcFieldName)
+		if destField.IsValid() && destField.CanSet() && destField.Type() == srcFieldValue.Type() {
+			destField.Set(srcFieldValue)
+		}
+	}
+	return nil
+}

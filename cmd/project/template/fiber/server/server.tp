@@ -1,0 +1,40 @@
+package server
+
+import (
+	"fmt"
+	"os"
+	"os/signal"
+	"{PROJECTNAME}/pkgs/builder"
+
+	"github.com/gofiber/fiber/v2"
+)
+
+type server struct {
+	app *fiber.App
+}
+
+func New(app *fiber.App) server {
+	return server{app: app}
+}
+
+func (s server) routes() {
+}
+
+func (s server) gracefulShutdown() {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	go func() {
+		serv := <-c
+		if serv.String() == "interrupt" {
+			fmt.Println("\nGracefully shutting down...")
+			s.app.Shutdown()
+		}
+	}()
+}
+
+func (s server) ListenAndServe() {
+	s.routes()
+	s.gracefulShutdown()
+	addr := builder.URLBuilder("addr")
+	s.app.Listen(addr)
+}

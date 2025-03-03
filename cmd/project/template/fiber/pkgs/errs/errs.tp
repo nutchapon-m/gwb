@@ -1,0 +1,12 @@
+package errs
+
+type AppError struct {
+	Code    int
+	Message string
+}
+
+var _ error = AppError{}
+
+func (ae AppError) Error() string {
+	return ae.Message
+}
